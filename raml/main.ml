@@ -289,7 +289,7 @@ let gen_func_learnocaml_report ?(simple_name=false) ?(indent="")=
 							
 
 				let bound_title = "Simplified bound: " in
-				let polynomial = weave Break @@ List.map (lines @@ string_of_buf (Pprint.fprint_polynomial f pol)) (fun x -> Text ("   "^ x))
+				let polynomial = weave Break @@ List.map (lines @@ string_of_buf (Pprint.fprint_polynomial f pol)) (fun x -> Text ("   "^ x)) 
 
 	  in
 				let desc = if List.length descs > 0 then
@@ -385,6 +385,11 @@ let analyze_module analysis_mode m_name metric deg1 deg2 collect_fun_types m env
   in
 
   let () = tcheck_module m env in
+  let timed_func f = (fun x -> let start = sys_time () in 
+				let res = f x in 
+				let end_time = sys_time () in 
+				let _ = end_time -. start |> string_of_float |> print_string in 
+				res) in 
   
   let f  =
     limit_fun 3 (*Caps runtime to 3 seconds*)
@@ -394,6 +399,7 @@ let analyze_module analysis_mode m_name metric deg1 deg2 collect_fun_types m env
       | _ -> None
     )
   in
+    let f = timed_func f in
     let join x = match x with 
                 | Some s -> s
                 | None -> None
@@ -760,9 +766,8 @@ let main argv =
 					| _ -> "fail"  )
 
 
-                    
+let _ = Parmap.parmapfold ?ncores:(Some 4) (fun x -> x *. x) (Parmap.L [1.1]) (+.) 0.0 (+.) |> string_of_float |> print_string ;;     
 let _ = main (Sys.argv);;
-
 
 
 
